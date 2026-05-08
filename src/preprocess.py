@@ -4,7 +4,7 @@ import nibabel as nib
 import imageio
 import logging
 from tqdm import tqdm
-from config import DATA_DIR, IMAGE_DIR, LABEL_DIR, IMG_SIZE
+from config import TRAINING_DIR, IMAGE_DIR, LABEL_DIR, TARGET_SHAPE
 
 # === CONFIGURATION DU LOGGER ===
 logging.basicConfig(
@@ -17,7 +17,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def pad_image(image, target_shape=IMG_SIZE):
+def pad_image(image, target_shape=TARGET_SHAPE):
     """Ajoute du noir autour de l'image pour atteindre la taille cible."""
     padded = np.zeros(target_shape, dtype=image.dtype)
     x, y = image.shape
@@ -31,20 +31,21 @@ def run_preprocessing():
     os.makedirs(str(IMAGE_DIR), exist_ok=True)
     os.makedirs(str(LABEL_DIR), exist_ok=True)
     
-    training_path = os.path.join(str(DATA_DIR), "training")
-    
+    training_path = os.path.join(str(TRAINING_DIR))
+
     if not os.path.exists(training_path):
         logger.error(f"Le dossier training est introuvable : {training_path}")
         return
-
-    patients = [p for p in os.listdir(training_path) if os.path.isdir(os.path.join(training_path, p))]
+    # Filtrer uniquement les vrais dossiers patients
+    patients = [p for p in os.listdir(training_path) 
+            if os.path.isdir(os.path.join(training_path, p)) and p.startswith("patient")]
     logger.info(f"Début du traitement : {len(patients)} patients trouvés.")
 
     for patient in tqdm(patients, desc="Extraction"):
         patient_path = os.path.join(training_path, patient)
         
-        img_file = os.path.join(patient_path, f"{patient}_frame01.nii")
-        lbl_file = os.path.join(patient_path, f"{patient}_frame01_gt.nii")
+        img_file = os.path.join(patient_path, f"{patient}_frame01.nii.gz")
+        lbl_file = os.path.join(patient_path, f"{patient}_frame01_gt.nii.gz")
 
         if not os.path.exists(img_file) or not os.path.exists(lbl_file):
             logger.warning(f"Fichiers manquants pour le patient {patient}. Skip.")

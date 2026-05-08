@@ -1,27 +1,28 @@
 from pathlib import Path
 
-# ── Racine du projet (dossier contenant les données brutes) ──────────────────
-BASE_DIR = Path(".", "Data")
-
 # ── Données brutes NIfTI ─────────────────────────────────────────────────────
-DATA_DIR      = BASE_DIR / "Data" / "Data"
-TRAINING_DIR  = DATA_DIR / "training"
+TRAINING_DIR    = Path("Data") / "training"
 
 # ── Données pré-traitées (PNG exportés) ──────────────────────────────────────
-DATASET_DIR   = BASE_DIR / "new_dataset"
-IMAGE_DIR     = DATASET_DIR / "images"
-LABEL_DIR     = DATASET_DIR / "labels"
-TESTING_DIR   = DATASET_DIR / "testing"
+DATASET_DIR     = Path("Preprocessed_Dataset")
+IMAGE_DIR       = DATASET_DIR / "images"
+LABEL_DIR       = DATASET_DIR / "labels"
+TESTING_DIR     = DATASET_DIR / "testing"
 
 # ── Sorties du modèle ────────────────────────────────────────────────────────
-PREDICTIONS_DIR = BASE_DIR / "predictions"
-MODEL_PATH      = BASE_DIR / "unet_model.h5"
+OUTPUT_DIR      = Path("Output")
+PREDICTIONS_DIR = OUTPUT_DIR / "predictions"
+MODEL_PATH      = OUTPUT_DIR / "unet_model.h5"
 
 # ── Paramètres d'image ───────────────────────────────────────────────────────
-TARGET_SHAPE  = (512, 512)   # taille cible après padding
-FRAME_ID      = "frame01"    # identifiant de la coupe temporelle utilisée
+TARGET_SHAPE    = (512, 512)
+FRAME_ID        = "frame01"
 
 # ── Hyperparamètres d'entraînement ───────────────────────────────────────────
-EPOCHS        = 5
-BATCH_SIZE    = 4
-THRESHOLD     = 0.5          # seuil de binarisation des prédictions
+EPOCHS          = 5
+BATCH_SIZE      = 4
+THRESHOLD       = 0.5
+
+# ── Création automatique des dossiers ────────────────────────────────────────
+for _dir in [IMAGE_DIR, LABEL_DIR, TESTING_DIR, PREDICTIONS_DIR]:
+    _dir.mkdir(parents=True, exist_ok=True)
