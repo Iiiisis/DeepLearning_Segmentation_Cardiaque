@@ -1,3 +1,6 @@
-# Ignore the dataset folder
+.venv/
+__pycache__/
+*.h5
+*.nii
+*.nii.gz
 Data/
-

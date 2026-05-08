@@ -1,6 +1,7 @@
-tensorflow
-numpy
-pandas
-scikit-learn
-matplotlib
-seaborn
+numpy>=2.0
+nibabel>=5.3
+imageio>=2.36
+tqdm>=4.67
+tensorflow>=2.18
+scipy>=1.14
+matplotlib>=3.9
