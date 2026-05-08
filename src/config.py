@@ -4,16 +4,18 @@ OUTPUT_DIR      = Path("Output")
 
 # ── Données brutes NIfTI ─────────────────────────────────────────────────────
 TRAINING_DIR    = Path("Data") / "training"
+TESTING_DIR     = Path("Data") / "testing"
 
 # ── Données pré-traitées (PNG exportés) ──────────────────────────────────────
 DATASET_DIR     = OUTPUT_DIR/ Path("Preprocessed_Dataset")
+TRAIN_DIR       = DATASET_DIR/"training_preprocessed"
 IMAGE_DIR       = DATASET_DIR / "images"
 LABEL_DIR       = DATASET_DIR / "labels"
-TESTING_DIR     = DATASET_DIR / "testing"
+TEST_DIR     = DATASET_DIR/"testing_preprocessed"
 
 # ── Sorties du modèle ────────────────────────────────────────────────────────
 PREDICTIONS_DIR = OUTPUT_DIR / "predictions"
-MODEL_PATH      = OUTPUT_DIR / "unet_model.h5"
+MODEL_PATH      = OUTPUT_DIR / "unet_model.keras"
 
 # ── Paramètres d'image ───────────────────────────────────────────────────────
 TARGET_SHAPE    = (512, 512)

@@ -9,11 +9,7 @@ from config import TRAINING_DIR, IMAGE_DIR, LABEL_DIR, TARGET_SHAPE
 # === CONFIGURATION DU LOGGER ===
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.FileHandler("preprocessing.log"), # Sauvegarde dans un fichier
-        logging.StreamHandler()                  # Affiche aussi dans la console
-    ]
+    format='%(asctime)s [%(levelname)s] %(message)s',               # Affiche aussi dans la console
 )
 logger = logging.getLogger(__name__)
 
