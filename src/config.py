@@ -9,9 +9,12 @@ TESTING_DIR     = Path("Data") / "testing"
 # ── Données pré-traitées (PNG exportés) ──────────────────────────────────────
 DATASET_DIR     = OUTPUT_DIR/ Path("Preprocessed_Dataset")
 TRAIN_DIR       = DATASET_DIR/"training_preprocessed"
-IMAGE_DIR       = DATASET_DIR / "images"
-LABEL_DIR       = DATASET_DIR / "labels"
-TEST_DIR     = DATASET_DIR/"testing_preprocessed"
+IMAGE_DIR       = TRAIN_DIR / "images"
+LABEL_DIR       = TRAIN_DIR / "labels"
+
+TEST_DIR        = DATASET_DIR/"testing_preprocessed"
+IMAGE_TEST_DIR       = TEST_DIR / "images"
+LABEL_TEST_DIR       = TEST_DIR / "labels"
 
 # ── Sorties du modèle ────────────────────────────────────────────────────────
 PREDICTIONS_DIR = OUTPUT_DIR / "predictions"

@@ -4,7 +4,7 @@ import nibabel as nib
 import imageio
 import logging
 from tqdm import tqdm
-from config import TRAINING_DIR, IMAGE_DIR, LABEL_DIR, TARGET_SHAPE
+from config import TRAINING_DIR,TESTING_DIR ,TARGET_SHAPE, IMAGE_DIR, LABEL_DIR, TARGET_SHAPE, LABEL_TEST_DIR, IMAGE_TEST_DIR
 
 # === CONFIGURATION DU LOGGER ===
 logging.basicConfig(
@@ -14,7 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def pad_image(image, target_shape=TARGET_SHAPE):
-    """Ajoute du noir autour de l'image pour atteindre la taille cible."""
+    """Ajoute du noir autour de l'image pour atteindre la taille cible"""
     padded = np.zeros(target_shape, dtype=image.dtype)
     x, y = image.shape
     x_offset = (target_shape[0] - x) // 2
@@ -22,23 +22,26 @@ def pad_image(image, target_shape=TARGET_SHAPE):
     padded[x_offset:x_offset+x, y_offset:y_offset+y] = image
     return padded
 
-def run_preprocessing():
+def run_preprocessing(source_dir, output_dir, lbl_target=None):
     # Création des dossiers
-    os.makedirs(str(IMAGE_DIR), exist_ok=True)
-    os.makedirs(str(LABEL_DIR), exist_ok=True)
+    os.makedirs(str(output_dir), exist_ok=True)
+    os.makedirs(str(lbl_target), exist_ok=True)
     
-    training_path = os.path.join(str(TRAINING_DIR))
+    #Recherche des patients
+    source_path = os.path.join(str(source_dir))
 
-    if not os.path.exists(training_path):
-        logger.error(f"Le dossier training est introuvable : {training_path}")
+    if not os.path.exists(source_path):
+        logger.error(f"Le dossier source est introuvable : {source_dir}")
         return
-    # Filtrer uniquement les vrais dossiers patients
-    patients = [p for p in os.listdir(training_path) 
-            if os.path.isdir(os.path.join(training_path, p)) and p.startswith("patient")]
+    
+    # Parcourt des patients
+    patients = [p for p in os.listdir(source_path) 
+            if os.path.isdir(os.path.join(source_path, p)) and p.startswith("patient")]
+    
     logger.info(f"Début du traitement : {len(patients)} patients trouvés.")
 
     for patient in tqdm(patients, desc="Extraction"):
-        patient_path = os.path.join(training_path, patient)
+        patient_path = os.path.join(source_path, patient)
         
         img_file = os.path.join(patient_path, f"{patient}_frame01.nii.gz")
         lbl_file = os.path.join(patient_path, f"{patient}_frame01_gt.nii.gz")
@@ -57,15 +60,21 @@ def run_preprocessing():
                 
                 name = f"{patient}_slice{z:03d}.png"
                 
-                imageio.imwrite(os.path.join(str(IMAGE_DIR), name), img_slice.astype(np.uint8))
+                imageio.imwrite(os.path.join(str(output_dir), name), img_slice.astype(np.uint8))
                 
                 label_name = name.replace(".png", "_label.png")
                 lbl_scaled = (lbl_slice > 0).astype(np.uint8) * 255 
-                imageio.imwrite(os.path.join(str(LABEL_DIR), label_name), lbl_scaled)        
+                imageio.imwrite(os.path.join(str(lbl_target), label_name), lbl_scaled)        
         except Exception as e:
-            logger.exception(f"Erreur critique lors du traitement du patient {patient}")
+            logger.exception(f"Erreur  lors du traitement de l'image du patient {patient}")
 
 if __name__ == "__main__":
-    logger.info("Lancement du script de prétraitement")
-    run_preprocessing()
-    logger.info("Prétraitement effectué.")
+    # 1. Traitement du Training (Images + Labels)
+    logger.info("Démarrage du prétraitement Training Data")
+    run_preprocessing(TRAINING_DIR, IMAGE_DIR, LABEL_DIR)
+    
+    # 2. Traitement du Testing (Images uniquement)
+    logger.info("Démarrage du prétraitement Testing Data")
+    run_preprocessing(TESTING_DIR,IMAGE_TEST_DIR,LABEL_TEST_DIR)
+    
+    logger.info("Prétraitement terminé.")

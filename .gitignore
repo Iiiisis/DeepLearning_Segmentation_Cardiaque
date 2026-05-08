@@ -4,3 +4,4 @@ __pycache__/
 *.nii
 *.nii.gz
 Data/
+Output/
