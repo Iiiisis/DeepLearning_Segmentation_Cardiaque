@@ -113,3 +113,7 @@
 2026-05-08 07:42:36,105 [INFO] Début du traitement : 100 patients trouvés.
 2026-05-08 07:42:36,919 [WARNING] Fichiers manquants pour le patient patient090. Skip.
 2026-05-08 07:42:38,284 [INFO] Prétraitement effectué.
+2026-05-08 07:56:44,150 [INFO] Lancement du script de prétraitement
+2026-05-08 07:56:44,151 [INFO] Début du traitement : 100 patients trouvés.
+2026-05-08 07:56:45,028 [WARNING] Fichiers manquants pour le patient patient090. Skip.
+2026-05-08 07:56:46,491 [INFO] Prétraitement effectué.

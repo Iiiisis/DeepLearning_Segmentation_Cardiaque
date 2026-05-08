@@ -1,16 +1,17 @@
 from pathlib import Path
 
+OUTPUT_DIR      = Path("Output")
+
 # ── Données brutes NIfTI ─────────────────────────────────────────────────────
 TRAINING_DIR    = Path("Data") / "training"
 
 # ── Données pré-traitées (PNG exportés) ──────────────────────────────────────
-DATASET_DIR     = Path("Preprocessed_Dataset")
+DATASET_DIR     = OUTPUT_DIR/ Path("Preprocessed_Dataset")
 IMAGE_DIR       = DATASET_DIR / "images"
 LABEL_DIR       = DATASET_DIR / "labels"
 TESTING_DIR     = DATASET_DIR / "testing"
 
 # ── Sorties du modèle ────────────────────────────────────────────────────────
-OUTPUT_DIR      = Path("Output")
 PREDICTIONS_DIR = OUTPUT_DIR / "predictions"
 MODEL_PATH      = OUTPUT_DIR / "unet_model.h5"
 

@@ -64,8 +64,8 @@ def run_preprocessing():
                 imageio.imwrite(os.path.join(str(IMAGE_DIR), name), img_slice.astype(np.uint8))
                 
                 label_name = name.replace(".png", "_label.png")
-                imageio.imwrite(os.path.join(str(LABEL_DIR), label_name), lbl_slice.astype(np.uint8))
-        
+                lbl_scaled = (lbl_slice > 0).astype(np.uint8) * 255 
+                imageio.imwrite(os.path.join(str(LABEL_DIR), label_name), lbl_scaled)        
         except Exception as e:
             logger.exception(f"Erreur critique lors du traitement du patient {patient}")
 
