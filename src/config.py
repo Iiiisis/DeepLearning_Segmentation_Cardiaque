@@ -12,7 +12,7 @@ TRAIN_DIR       = DATASET_DIR/"training_preprocessed"
 IMAGE_DIR       = TRAIN_DIR / "images"
 LABEL_DIR       = TRAIN_DIR / "labels"
 
-TEST_DIR        = DATASET_DIR/"testing_preprocessed"
+TEST_DIR             = DATASET_DIR/"testing_preprocessed"
 IMAGE_TEST_DIR       = TEST_DIR / "images"
 LABEL_TEST_DIR       = TEST_DIR / "labels"
 

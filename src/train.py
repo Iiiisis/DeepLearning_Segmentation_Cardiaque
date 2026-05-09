@@ -97,7 +97,9 @@ if __name__ == "__main__":
     test_imgs = list(IMAGE_TEST_DIR.glob("*.png"))
 
     if not test_imgs:
-        logger.warning("Aucune image de test trouvée dans TESTING_DIR.")
+        logger.warning(f"Aucune image de test trouvée dans {IMAGE_TEST_DIR}. Arrêt des prédictions.")
+        exit(0)  
+        
     else:
         logger.info(f"{len(test_imgs)} images de test trouvées. Lancement des prédictions...")
         for test_img in tqdm(test_imgs, desc="Prédictions"):
