@@ -4,6 +4,8 @@ import logging
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 
 from model import build_unet
 from config import IMAGE_DIR, LABEL_DIR,IMAGE_TEST_DIR, LABEL_TEST_DIR, GRAPH_PATH, PREDICTIONS_DIR, MODEL_PATH, BATCH_SIZE, EPOCHS, THRESHOLD
@@ -28,7 +30,7 @@ def load_data(image_dir, label_dir):
         lbl_path = label_dir / img_path.name.replace(".png", "_label.png")
         if lbl_path.exists():
             X.append(np.expand_dims(imageio.imread(str(img_path)) / 255.0, -1))
-            Y.append(np.expand_dims(imageio.imread(str(lbl_path)) / 255.0, -1))
+            Y.append(np.expand_dims(imageio.imread(str(lbl_path)) , -1))
         else:
             logger.warning(f"Label manquant pour {img_path.name}, skip.")
 
@@ -114,7 +116,28 @@ if __name__ == "__main__":
     plt.imshow(masque_transparent, cmap='autumn', alpha=0.5)
 
     plt.axis('off') # On enlève les axes
-    overlay_path = os.path.join(str(PREDICTIONS_DIR), test_img.name.replace(".png", "_overlay.png"))
+    
+    overlay_path = os.path.join(str(GRAPH_PATH), test_img.name.replace(".png", "_overlay.png"))
     plt.savefig(overlay_path, bbox_inches='tight', pad_inches=0)
     plt.close()
     
+
+    pred_prob = model.predict(img)[0] # Sortie de taille (512, 512, 4)
+    pred_classes = np.argmax(pred_prob, axis=-1) # On garde la classe la plus probable (0, 1, 2 ou 3)
+
+    # Création de tes 3 couleurs (transparent pour le fond, puis Cyan, Jaune, Rouge)
+    # RGBA : Red, Green, Blue, Alpha (transparence)
+    couleurs = [
+        (0, 0, 0, 0),       # Classe 0 (Fond) : Transparent
+        (0, 1, 1, 1),       # Classe 1 : Cyan (ex: Ventricule Droit)
+        (1, 1, 0, 1),       # Classe 2 : Jaune (ex: Myocarde)
+        (1, 0, 0, 1)        # Classe 3 : Rouge (ex: Ventricule Gauche)
+    ]
+    ma_palette = ListedColormap(couleurs)
+
+    plt.figure(figsize=(5, 5))
+    plt.imshow(img[0, :, :, 0], cmap='gray') # L'IRM de fond
+    plt.imshow(pred_classes, cmap=ma_palette, interpolation='none', alpha=0.6) # Le masque 3 couleurs
+    plt.axis('off')
+    image_output_path = os.path.join(str(GRAPH_PATH), test_img.name.replace(".png", "Sortie.png"))
+    plt.savefig(image_output_path)

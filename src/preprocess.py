@@ -63,8 +63,7 @@ def run_preprocessing(source_dir, output_dir, lbl_target=None):
                 imageio.imwrite(os.path.join(str(output_dir), name), img_slice.astype(np.uint8))
                 
                 label_name = name.replace(".png", "_label.png")
-                lbl_scaled = (lbl_slice > 0).astype(np.uint8) * 255 
-                imageio.imwrite(os.path.join(str(lbl_target), label_name), lbl_scaled)        
+                imageio.imwrite(os.path.join(str(LABEL_DIR), label_name), lbl_slice.astype(np.uint8))       
         except Exception as e:
             logger.exception(f"Erreur  lors du traitement de l'image du patient {patient}")
 

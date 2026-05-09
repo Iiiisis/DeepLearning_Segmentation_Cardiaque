@@ -62,12 +62,11 @@ def build_unet(input_shape: tuple = (*TARGET_SHAPE, 1)) -> tf.keras.Model:
     c5 = layers.Conv2D(16, 3, activation="relu", padding="same")(c5)
 
     # ── Tête de classification ────────────────────────────────────────────────
-    outputs = layers.Conv2D(1, 1, activation="sigmoid")(c5)
-
+    #4 filtres (car 4 classes : 0=Fond, 1=VD, 2=Myocarde, 3=VG) et activation 'softmax'
+    outputs = layers.Conv2D(4, 1, activation="softmax")(c5)
     model = models.Model(inputs, outputs, name="UNet")
-    model.compile(
-        optimizer="adam",
-        loss="binary_crossentropy",
-        metrics=["accuracy"],
-    )
+    model.compile(optimizer="adam",
+                loss="sparse_categorical_crossentropy",  #sparse_categorical_crossentropy pour le multi-classes
+                metrics=["accuracy"],
+                )
     return model
