@@ -21,7 +21,7 @@ from tensorflow.keras import layers, models
 from config import TARGET_SHAPE
 
 
-def build_unet(input_shape: tuple = (*TARGET_SHAPE, 1)) -> tf.keras.Model:
+def unet_model(input_shape: tuple = (*TARGET_SHAPE, 1)) -> tf.keras.Model:
     """
     Construit et compile le modèle U-Net.
 

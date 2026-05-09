@@ -16,7 +16,6 @@ FRAME_ID        = "frame01"
 # --- Hyperparamètres d'entraînement -----------------------------------------
 EPOCHS          = 5         # Nombre de passages complets sur le jeu de données
 BATCH_SIZE      = 4         # Nombre d'images traitées avant la mise à jour des poids
-THRESHOLD       = 0.5       # Seuil de probabilité pour la segmentation binaire
 
 # --- Dossier racine pour toutes les sorties générées par le code-------------
 OUTPUT_DIR      = Path("Output")

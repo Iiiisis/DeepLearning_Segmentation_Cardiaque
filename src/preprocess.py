@@ -91,7 +91,7 @@ def run_preprocessing(source_dir, output_dir, lbl_target=None):
                 
                 # Sauvegarde du masque correspondant
                 label_name = name.replace(".png", "_label.png")
-                imageio.imwrite(os.path.join(str(LABEL_TEST_DIR), label_name), lbl_slice.astype(np.uint8))       
+                imageio.imwrite(os.path.join(str(lbl_target), label_name), lbl_slice.astype(np.uint8))       
         except Exception as e:
             logger.exception(f"Erreur  lors du traitement de l'image du patient {patient}")
 
