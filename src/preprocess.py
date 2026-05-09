@@ -1,3 +1,11 @@
+"""
+preprocess.py
+-------------
+Script de préparation des données. Il lit les volumes 3D au format NIfTI,
+extrait chaque tranche (slice) axiale, applique un padding pour atteindre
+la taille cible (512x512) et sauvegarde les tranches sous forme d'images PNG.
+"""
+
 import os
 import imageio
 import logging
@@ -16,35 +24,48 @@ logger = logging.getLogger(__name__)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def pad_image(image, target_shape=TARGET_SHAPE):
-    """Ajoute du noir autour de l'image pour atteindre la taille cible"""
+    """
+    Ajoute du noir (zéros) autour de l'image pour atteindre la taille cible
+    sans déformer les proportions de l'IRM originale.
+    
+    """
     padded = np.zeros(target_shape, dtype=image.dtype)
     x, y = image.shape
+    
+    # Calcul des marges pour centrer l'image
     x_offset = (target_shape[0] - x) // 2
     y_offset = (target_shape[1] - y) // 2
+    
+    # Insertion de l'image originale au centre du cadre de zéros
     padded[x_offset:x_offset+x, y_offset:y_offset+y] = image
     return padded
 
 def run_preprocessing(source_dir, output_dir, lbl_target=None):
-    # Création des dossiers
+    """
+    Parcourt un dossier de patients, lit les fichiers NIfTI, et exporte 
+    les tranches 2D au format PNG.
+    """
+    # Création des dossiers de destination s'ils n'existent pas
     os.makedirs(str(output_dir), exist_ok=True)
     os.makedirs(str(lbl_target), exist_ok=True)
     
-    #Recherche des patients
+    # Recherche du dossier contenant les patients    
     source_path = os.path.join(str(source_dir))
 
     if not os.path.exists(source_path):
         logger.error(f"Le dossier source est introuvable : {source_dir}")
         return
     
-    # Parcourt des patients
+    # Liste tous les sous-dossiers qui commencent par "patient"
     patients = [p for p in os.listdir(source_path) 
             if os.path.isdir(os.path.join(source_path, p)) and p.startswith("patient")]
-    
     logger.info(f"Début du traitement : {len(patients)} patients trouvés.")
 
+    # Barre de progression pour le suivi du traitement
     for patient in tqdm(patients, desc="Extraction"):
         patient_path = os.path.join(source_path, patient)
         
+        # Définition des noms de fichiers attendus pour l'image et sa vérité terrain (label)
         img_file = os.path.join(patient_path, f"{patient}_frame01.nii.gz")
         lbl_file = os.path.join(patient_path, f"{patient}_frame01_gt.nii.gz")
 
@@ -53,17 +74,22 @@ def run_preprocessing(source_dir, output_dir, lbl_target=None):
             continue
 
         try:
+            # Chargement des volumes 3D avec nibabel
             img_data = nib.load(img_file).get_fdata()
             lbl_data = nib.load(lbl_file).get_fdata()
-
+            
+            # Itération sur l'axe Z (la profondeur) pour extraire chaque tranche 2D
             for z in range(img_data.shape[2]):
+                # Redimensionnement (padding) de la tranche
                 img_slice = pad_image(img_data[:, :, z])
                 lbl_slice = pad_image(lbl_data[:, :, z])
                 
+                # Formatage du nom de l'image PNG
                 name = f"{patient}_slice{z:03d}.png"
-                
+                # Sauvegarde de l'image (convertie en entiers 8 bits)
                 imageio.imwrite(os.path.join(str(output_dir), name), img_slice.astype(np.uint8))
                 
+                # Sauvegarde du masque correspondant
                 label_name = name.replace(".png", "_label.png")
                 imageio.imwrite(os.path.join(str(LABEL_TEST_DIR), label_name), lbl_slice.astype(np.uint8))       
         except Exception as e:
