@@ -1,8 +1,9 @@
 import os
-import numpy as np
-import nibabel as nib
 import imageio
 import logging
+import warnings
+import numpy as np
+import nibabel as nib
 from tqdm import tqdm
 from config import TRAINING_DIR,TESTING_DIR ,TARGET_SHAPE, IMAGE_DIR, LABEL_DIR, TARGET_SHAPE, LABEL_TEST_DIR, IMAGE_TEST_DIR
 
@@ -12,6 +13,7 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s',               # Affiche aussi dans la console
 )
 logger = logging.getLogger(__name__)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def pad_image(image, target_shape=TARGET_SHAPE):
     """Ajoute du noir autour de l'image pour atteindre la taille cible"""
