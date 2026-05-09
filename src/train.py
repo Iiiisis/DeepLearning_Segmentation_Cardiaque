@@ -1,9 +1,19 @@
+"""
+train.py
+--------
+Script principal d'entraînement et de prédiction
+1. Charge les images et les masques PNG en mémoire.
+2. Entraîne le modèle U-Net défini dans model.py.
+3. Sauvegarde les poids du modèle et les courbes d'apprentissage.
+4. Effectue des prédictions sur l'ensemble de test et génère des visualisations.
+"""
+
 import os
 import imageio
 import logging
+import warnings
 import numpy as np
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
@@ -16,9 +26,18 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
 logger = logging.getLogger(__name__)
-
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def load_data(image_dir, label_dir):
+    """
+    Parcourt un dossier, lit les images et leurs labels correspondants,
+    et les formate sous forme de tableaux NumPy compatibles avec Keras.
+    
+    -H (Height - Hauteur) : Le nombre de pixels de l'image de haut en bas.
+    -W (Width - Largeur) : Le nombre de pixels de l'image de gauche à droite.
+    -1 (Channels - Canaux) : La "profondeur" des couleurs. Le chiffre 1 signifie qu'il y a un seul canal d'information par pixel, ce qui correspond à une image en niveaux de gris.
+    """
+    
     X, Y = [], []
     img_paths = list(image_dir.glob("*.png"))
 
@@ -29,7 +48,9 @@ def load_data(image_dir, label_dir):
     for img_path in tqdm(img_paths, desc="Chargement des données"):
         lbl_path = label_dir / img_path.name.replace(".png", "_label.png")
         if lbl_path.exists():
+            # Normalisation de l'image entre 0 et 1 et ajout de la dimension du canal (H, W, 1)
             X.append(np.expand_dims(imageio.imread(str(img_path)) / 255.0, -1))
+            # Ajout de la dimension du canal pour le masque (H, W, 1) sans normalisation (labels entiers)
             Y.append(np.expand_dims(imageio.imread(str(lbl_path)) , -1))
         else:
             logger.warning(f"Label manquant pour {img_path.name}, skip.")
@@ -39,7 +60,7 @@ def load_data(image_dir, label_dir):
 
 
 if __name__ == "__main__":
-    # 1. Chargement
+    #-- 1. Chargement des données----------------------------
     logger.info("Chargement des données d'entraîmenent...")
     X_train, y_train = load_data(IMAGE_DIR, LABEL_DIR)
     logger.info("Chargement des données de validation...")
@@ -49,23 +70,25 @@ if __name__ == "__main__":
         logger.error("Aucune donnée d'entraînement chargée. Arrêt.")
         exit(1)
 
-    # ---  Entraînement ---
+    #--2. Entraînement du modèle----------------------------
     logger.info("Construction et entraînement du modèle...")
     model = build_unet()
     
+    # Lancement de la boucle d'apprentissage
     history =model.fit(X_train, y_train, 
                         validation_data=(X_val, y_val) if len(X_val) > 0 else None,
-                        epochs=50, 
+                        epochs=5, 
                         batch_size=BATCH_SIZE)
-
+    
+    # Sauvegarde du modèle entraîné
     model.save(str(MODEL_PATH))
     logger.info(f"Modèle sauvegardé : {MODEL_PATH}")
 
-    # ---  CRÉATION DES GRAPHIQUES ---
+    #--3. Création des graphiques de suivi----------------------------
     logger.info("Génération des graphiques...")
     plt.figure(figsize=(12, 5))
 
-    # Graphique de la Loss
+    # Sous-graphique 1 : Évolution de la Loss (Erreur)
     plt.subplot(1, 2, 1)
     plt.plot(history.history['loss'], label='Courbe d\'entraînement (Loss)')
     if 'val_loss' in history.history:
@@ -76,7 +99,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid(True)
 
-    # Graphique de l'Accuracy
+    # Sous-graphique 2 : Évolution de l'Accuracy (Précision)
     plt.subplot(1, 2, 2)
     plt.plot(history.history['accuracy'], label='Accuracy Entraînement')
     if 'val_accuracy' in history.history:
@@ -87,13 +110,13 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid(True)
     
-    # Sauvegarde de l'image
+    # Sauvegarde combinée des deux graphiques
     plt.savefig(str(GRAPH_PATH))
     plt.close()
     logger.info(f"Graphiques sauvegardés dans {GRAPH_PATH}")
     
     
-    # --- Prédiction sur les images de test ---
+    # --- 4. Prédiction sur les images de test ---------------------------------------------
     test_imgs = list(IMAGE_TEST_DIR.glob("*.png"))
 
     if not test_imgs:
@@ -102,44 +125,36 @@ if __name__ == "__main__":
         
     else:
         logger.info(f"{len(test_imgs)} images de test trouvées. Lancement des prédictions...")
+        
+        # 4.1 On définit la palette de couleurs AVANT la boucle (pour ne pas la recréer 100 fois)
+        couleurs = [
+            (0, 0, 0, 0),       # Classe 0 (Fond) : Transparent
+            (0, 1, 1, 1),       # Classe 1 : Cyan (ex: Ventricule Droit)
+            (1, 1, 0, 1),       # Classe 2 : Jaune (ex: Myocarde)
+            (1, 0, 0, 1)        # Classe 3 : Rouge (ex: Ventricule Gauche)
+        ]
+        ma_palette = ListedColormap(couleurs)
+
+        # 4.2 On boucle sur chaque image
         for test_img in tqdm(test_imgs, desc="Prédictions"):
+            # Formatage de l'image (IRM)
             img = np.expand_dims(imageio.imread(str(test_img)) / 255.0, (0, -1))
-            pred = (model.predict(img)[0, :, :, 0] > THRESHOLD).astype(np.uint8) * 255
-            pred_name = test_img.name.replace(".png", "_pred.png")
-            pred_path = os.path.join(str(PREDICTIONS_DIR), pred_name)
-            imageio.imwrite(pred_path, pred)
-        logger.info(f"Prédictions sauvegardées dans : {PREDICTIONS_DIR}")
-    
-    # Création image superposée
-    plt.figure(figsize=(5, 5))
-    plt.imshow(img[0, :, :, 0], cmap='gray')
-    
-    masque_transparent = np.ma.masked_where(pred == 0, pred)
-    plt.imshow(masque_transparent, cmap='autumn', alpha=0.5)
-
-    plt.axis('off') # On enlève les axes
-    
-    overlay_path = os.path.join(str(GRAPH_PATH), test_img.name.replace(".png", "_overlay.png"))
-    plt.savefig(overlay_path, bbox_inches='tight', pad_inches=0)
-    plt.close()
-    
-
-    pred_prob = model.predict(img)[0] # Sortie de taille (512, 512, 4)
-    pred_classes = np.argmax(pred_prob, axis=-1) # On garde la classe la plus probable (0, 1, 2 ou 3)
-
-    # Création de tes 3 couleurs (transparent pour le fond, puis Cyan, Jaune, Rouge)
-    # RGBA : Red, Green, Blue, Alpha (transparence)
-    couleurs = [
-        (0, 0, 0, 0),       # Classe 0 (Fond) : Transparent
-        (0, 1, 1, 1),       # Classe 1 : Cyan (ex: Ventricule Droit)
-        (1, 1, 0, 1),       # Classe 2 : Jaune (ex: Myocarde)
-        (1, 0, 0, 1)        # Classe 3 : Rouge (ex: Ventricule Gauche)
-    ]
-    ma_palette = ListedColormap(couleurs)
-
-    plt.figure(figsize=(5, 5))
-    plt.imshow(img[0, :, :, 0], cmap='gray') # L'IRM de fond
-    plt.imshow(pred_classes, cmap=ma_palette, interpolation='none', alpha=0.6) # Le masque 3 couleurs
-    plt.axis('off')
-    image_output_path = os.path.join(str(GRAPH_PATH), test_img.name.replace(".png", "Sortie.png"))
-    plt.savefig(image_output_path)
+            
+            # Prédiction Multi-classes
+            pred_prob = model.predict(img)[0] # Sortie de taille (512, 512, 4)
+            pred_classes = np.argmax(pred_prob, axis=-1) # On garde la classe la plus probable (0, 1, 2 ou 3)
+            
+            # Création de l'image superposée (Overlay)
+            plt.figure(figsize=(5, 5))
+            plt.imshow(img[0, :, :, 0], cmap='gray') # L'IRM de fond en niveaux de gris
+            plt.imshow(pred_classes, cmap=ma_palette, interpolation='none', alpha=0.5) # Le masque 3 couleurs par-dessus
+            plt.axis('off') # On enlève les axes
+            
+            # Sauvegarde au BON endroit (dans PREDICTIONS_DIR)
+            overlay_name = test_img.name.replace(".png", "_overlay.png")
+            overlay_path = os.path.join(str(PREDICTIONS_DIR), overlay_name)
+            
+            plt.savefig(overlay_path, bbox_inches='tight', pad_inches=0)
+            plt.close() # IMPORTANT : libère la mémoire de l'ordinateur après chaque image
+            
+        logger.info(f"Prédictions superposées en couleurs sauvegardées dans : {PREDICTIONS_DIR}")
