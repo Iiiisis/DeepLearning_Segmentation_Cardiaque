@@ -19,6 +19,7 @@ LABEL_TEST_DIR       = TEST_DIR / "labels"
 # ── Sorties du modèle ────────────────────────────────────────────────────────
 PREDICTIONS_DIR = OUTPUT_DIR / "predictions"
 MODEL_PATH      = OUTPUT_DIR / "unet_model.keras"
+GRAPH_PATH      = OUTPUT_DIR / "courbes_apprentissage.png"
 
 # ── Paramètres d'image ───────────────────────────────────────────────────────
 TARGET_SHAPE    = (512, 512)
