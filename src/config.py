@@ -16,6 +16,7 @@ FRAME_ID        = "frame01"
 # --- Hyperparamètres d'entraînement -----------------------------------------
 EPOCHS          = 5         # Nombre de passages complets sur le jeu de données
 BATCH_SIZE      = 4         # Nombre d'images traitées avant la mise à jour des poids
+NUM_CLASSES = 4  # 0: Fond, 1: VD, 2: Myocarde, 3: VG
 
 # --- Dossier racine pour toutes les sorties générées par le code-------------
 OUTPUT_DIR      = Path("Output")
@@ -35,7 +36,7 @@ TEST_DIR             = DATASET_DIR/"testing_preprocessed"
 IMAGE_TEST_DIR       = TEST_DIR / "images"
 LABEL_TEST_DIR       = TEST_DIR / "labels"
 
-# --- Sorties du modèle ------------------------------------------------------
+# --- Chemin de Sortie ------------------------------------------------------
 PREDICTIONS_DIR = OUTPUT_DIR / "predictions"
 MODEL_PATH      = OUTPUT_DIR / "unet_model.keras"
 GRAPH_PATH      = OUTPUT_DIR / "courbes_apprentissage.png"

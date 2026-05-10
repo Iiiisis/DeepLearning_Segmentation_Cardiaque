@@ -82,6 +82,10 @@ def run_preprocessing(source_dir, output_dir, lbl_target=None):
             for z in range(img_data.shape[2]):
                 # Redimensionnement (padding) de la tranche
                 img_slice = pad_image(img_data[:, :, z])
+                # NOUVEAU : On normalise l'IRM pour éviter les "trous noirs"
+                if img_slice.max() > 0:
+                    img_slice = (img_slice / img_slice.max()) * 255.0
+                
                 lbl_slice = pad_image(lbl_data[:, :, z])
                 
                 # Formatage du nom de l'image PNG
